@@ -4,8 +4,6 @@ import { spawn } from 'child_process';
 import fs = require('fs');
 import AdmZip = require('adm-zip');
 
-import { OptimizeService } from './optimize.service';
-
 const fsPromises = fs.promises;
 
 async function mkDir(name: string) {
@@ -36,7 +34,7 @@ async function blastSpawn(folder: string, job: Job<unknown>) {
   const blastSpawn = spawn(
     process.env.BLAST,
     [chargeWeight, distance, structureWidth, structureLength, structureHeight],
-    { cwd: folder }
+    { cwd: folder },
   );
   for await (const data of blastSpawn.stderr) {
     job.failedReason = data.toString();
