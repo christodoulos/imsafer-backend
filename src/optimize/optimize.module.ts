@@ -2,34 +2,20 @@ import { Module } from '@nestjs/common';
 import { OptimizeController } from './optimize.controller';
 import { BullModule } from '@nestjs/bull';
 
-import { OptimizeProducer } from './optimize.producer';
-import { StrengthenProducer } from './strengthen.producer';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Strengthen, StrengthenSchema } from './schemas';
-import { OptimizeService } from './optimize.service';
-import { StrengthenConsumer } from './strengthen.consumer';
 import { BlastProducer } from './blast.producer';
 import { BlastConsumer } from './blast.consumer';
+import { FireProducer } from './fire.producer';
+import { FireConsumer } from './fire.consumer';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Strengthen.name, schema: StrengthenSchema },
-    ]),
     BullModule.registerQueue(
-      { name: 'optimize' },
-      { name: 'strengthen' },
+      { name: 'robust' },
       { name: 'blast' },
+      { name: 'fire' },
     ),
   ],
   controllers: [OptimizeController],
-  providers: [
-    OptimizeProducer,
-    StrengthenProducer,
-    StrengthenConsumer,
-    BlastProducer,
-    BlastConsumer,
-    OptimizeService,
-  ],
+  providers: [BlastProducer, BlastConsumer, FireProducer, FireConsumer],
 })
 export class OptimizeModule {}

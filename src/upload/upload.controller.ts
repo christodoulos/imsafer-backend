@@ -26,7 +26,7 @@ export class UploadController {
         destination: '/tmp/uploads',
         filename: editFileName,
       }),
-    })
+    }),
   )
   async uploadedFile(@UploadedFile() file: Express.Multer.File) {
     const response = {
@@ -44,10 +44,10 @@ export class UploadController {
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
-    })
+    }),
   )
   async uploadMultipleFiles(
-    @UploadedFiles() files: Array<Express.Multer.File>
+    @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
     const response = [];
     files.forEach((file) => {

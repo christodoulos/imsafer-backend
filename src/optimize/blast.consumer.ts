@@ -31,11 +31,13 @@ async function blastSpawn(folder: string, job: Job<unknown>) {
     structureHeight,
   } = job.data['blastData'];
 
+  console.log('BLAST DATA', job.data['blastData'], process.env.BLAST);
   const blastSpawn = spawn(
     process.env.BLAST,
     [chargeWeight, distance, structureWidth, structureLength, structureHeight],
     { cwd: folder },
   );
+  console.log(blastSpawn.pid);
   for await (const data of blastSpawn.stderr) {
     job.failedReason = data.toString();
     job.moveToFailed({ message: job.failedReason }, true);
@@ -47,6 +49,7 @@ export class BlastConsumer {
   @Process('blast-job')
   async blastDo(job: Job<unknown>) {
     const folder = await prepareBlastCase(job);
+    console.log(folder);
     await blastSpawn(folder, job);
     const zip = new AdmZip();
     zip.addLocalFolder(folder);
