@@ -6,10 +6,10 @@ import { Queue } from 'bull';
 export class RobustProducer {
   constructor(@InjectQueue('robust') private readonly queue: Queue) {}
 
-  async robustNew(name: string, data: any, uuid: string) {
+  async robustNew(scase: Express.Multer.File, name: string, uuid: string) {
     const job = await this.queue.add('robust-job', {
+      scase,
       name,
-      robustData: data,
       uuid,
     });
 

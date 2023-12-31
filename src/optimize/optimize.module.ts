@@ -6,6 +6,8 @@ import { BlastProducer } from './blast.producer';
 import { BlastConsumer } from './blast.consumer';
 import { FireProducer } from './fire.producer';
 import { FireConsumer } from './fire.consumer';
+import { RobustProducer } from './robust.producer';
+import { RobustConsumer } from './robust.consumer';
 
 @Module({
   imports: [
@@ -16,6 +18,13 @@ import { FireConsumer } from './fire.consumer';
     ),
   ],
   controllers: [OptimizeController],
-  providers: [BlastProducer, BlastConsumer, FireProducer, FireConsumer],
+  providers: [
+    BlastProducer,
+    BlastConsumer,
+    FireProducer,
+    FireConsumer,
+    RobustProducer,
+    RobustConsumer,
+  ],
 })
 export class OptimizeModule {}
