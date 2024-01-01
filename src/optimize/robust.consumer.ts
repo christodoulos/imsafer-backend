@@ -1,38 +1,8 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { spawn } from 'child_process';
-import fs = require('fs');
 import AdmZip = require('adm-zip');
-
-const fsPromises = fs.promises;
-
-async function mkDir(name: string) {
-  try {
-    return await fsPromises.mkdir(name, { recursive: true });
-  } catch (err) {
-    console.error('Error while making directory!', err);
-  }
-}
-
-async function buffer2File(buffer: Buffer, fname: string) {
-  try {
-    fsPromises.writeFile(fname, buffer.toString());
-    console.log('Successful buffer dump to file');
-  } catch (err) {
-    console.error('Error while writing buffer to file!', err);
-  }
-}
-
-async function prepareRobustCase(job: Job<unknown>): Promise<string> {
-  const jobName = job.data['name'];
-  const jobUUID = job.data['uuid'];
-  const folder = `/tmp/imsafer/robust/${jobName}-${jobUUID}/`;
-  const fname = `${folder}/Data.csv`;
-  const buffer = Buffer.from(job.data['scase'][0]['buffer']['data']);
-  await mkDir(folder);
-  await buffer2File(buffer, fname);
-  return folder;
-}
+import { folder4Case, buffer2File } from './utils';
 
 async function robustSpawn(folder: string, job: Job<unknown>) {
   const mcode = `addpath('${process.env.ROBUST}'); optimeccentricity('Data'); exit;`;
@@ -79,7 +49,10 @@ async function robustSpawn(folder: string, job: Job<unknown>) {
 export class RobustConsumer {
   @Process('robust-job')
   async robustDo(job: Job<unknown>) {
-    const folder = await prepareRobustCase(job);
+    const folder = await folder4Case('robust', job);
+    const fname = `${folder}/Data.csv`;
+    const buffer = Buffer.from(job.data['scase'][0]['buffer']['data']);
+    await buffer2File(buffer, fname);
     await robustSpawn(folder, job);
     const zip = new AdmZip();
     zip.addLocalFolder(folder);

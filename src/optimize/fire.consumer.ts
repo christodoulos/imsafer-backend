@@ -1,36 +1,10 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { spawn } from 'child_process';
+import { folder4Case, string2File } from './utils';
 import fs = require('fs');
 
 const fsPromises = fs.promises;
-
-async function mkDir(name: string) {
-  try {
-    return await fsPromises.mkdir(name, { recursive: true });
-  } catch (err) {
-    console.error('Error while making directory!', err);
-  }
-}
-
-async function string2File(s: string, fname: string) {
-  try {
-    fsPromises.writeFile(fname, s);
-    console.log('Successful atc dump to file');
-  } catch (err) {
-    console.error('Error while writing string to file!', err);
-  }
-}
-
-async function prepareFireCase(job: Job<unknown>): Promise<string> {
-  const jobName = job.data['name'];
-  const jobUUID = job.data['uuid'];
-  const folder = `/tmp/imsafer/fire/${jobName}-${jobUUID}/`;
-  const fname = `${folder}/ex.atc`;
-  await mkDir(folder);
-  await string2File(job.data['fireData'], fname);
-  return folder;
-}
 
 async function fireSpawn(folder: string, job: Job<unknown>) {
   const regex = /Iteration (.*) (.*) condition (.*) (.*)/gm;
@@ -60,7 +34,9 @@ async function fireSpawn(folder: string, job: Job<unknown>) {
 export class FireConsumer {
   @Process('fire-job')
   async fireDo(job: Job<unknown>) {
-    const folder = await prepareFireCase(job);
+    const folder = await folder4Case('fire', job);
+    const fname = `${folder}/ex.atc`;
+    await string2File(job.data['fireData'], fname);
     await fireSpawn(folder, job);
     const result = await fsPromises.readFile(`${folder}/ex.res`);
     return result;
