@@ -32,7 +32,7 @@ async function fireSpawn(folder: string, job: Job<unknown>) {
 
 @Processor('fire')
 export class FireConsumer {
-  @Process('fire-job')
+  @Process({ name: 'fire-job', concurrency: 5 })
   async fireDo(job: Job<unknown>) {
     const folder = await folder4Case('fire', job);
     const fname = `${folder}/ex.atc`;

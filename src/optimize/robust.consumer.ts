@@ -27,6 +27,9 @@ async function robustSpawn(folder: string, job: Job<unknown>) {
       const percomplete = 2.5 * (40 - parseInt(match[2]));
       job.progress(percomplete);
       console.log(`Completed: ${percomplete}%`);
+      if (percomplete === 100) {
+        job.moveToCompleted('done', true);
+      }
     }
   }
   for await (const data of robustSpawn.stderr) {
@@ -47,7 +50,7 @@ async function robustSpawn(folder: string, job: Job<unknown>) {
 
 @Processor('robust')
 export class RobustConsumer {
-  @Process('robust-job')
+  @Process({ name: 'robust-job', concurrency: 5 })
   async robustDo(job: Job<unknown>) {
     const folder = await folder4Case('robust', job);
     const fname = `${folder}/Data.csv`;

@@ -28,7 +28,7 @@ async function blastSpawn(folder: string, job: Job<unknown>) {
 
 @Processor('blast')
 export class BlastConsumer {
-  @Process('blast-job')
+  @Process({ name: 'blast-job', concurrency: 5 })
   async blastDo(job: Job<unknown>) {
     const folder = await folder4Case('blast', job);
     console.log(folder);

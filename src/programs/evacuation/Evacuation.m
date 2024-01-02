@@ -8,7 +8,7 @@ function Evacuation()
 %   2 -> plot with pause
 %   3 -> record film
     scene_num = 1;
-    plot_type = 1;
+    plot_type = 3;
     outfile = 'Output';
 %   Load scene parameters
     Data = Scenes(scene_num, 'data.csv');    
