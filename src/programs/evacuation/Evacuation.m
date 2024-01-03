@@ -91,6 +91,8 @@ function Evacuation()
     %   ---- evoluation start ----
     disp('Simulating...');
     for g=1:MaxGen
+        fprintf('Current Generation %3d Remaining Generations %3d\n', g, MaxGen - g);
+
         if(light_size>0)
             instruction();
         end

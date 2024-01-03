@@ -8,6 +8,10 @@ import { FireProducer } from './fire.producer';
 import { FireConsumer } from './fire.consumer';
 import { RobustProducer } from './robust.producer';
 import { RobustConsumer } from './robust.consumer';
+import { EvacuationProducer } from './evacuation.producer';
+import { EvacuationConsumer } from './evacuation.consumer';
+import { AssessmentProducer } from './assessment.producer';
+import { AssessmentConsumer } from './assessment.consumer';
 
 @Module({
   imports: [
@@ -15,6 +19,8 @@ import { RobustConsumer } from './robust.consumer';
       { name: 'robust' },
       { name: 'blast' },
       { name: 'fire' },
+      { name: 'evacuation' },
+      { name: 'assessment' },
     ),
   ],
   controllers: [OptimizeController],
@@ -25,6 +31,10 @@ import { RobustConsumer } from './robust.consumer';
     FireConsumer,
     RobustProducer,
     RobustConsumer,
+    EvacuationProducer,
+    EvacuationConsumer,
+    AssessmentProducer,
+    AssessmentConsumer,
   ],
 })
 export class OptimizeModule {}

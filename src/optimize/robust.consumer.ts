@@ -6,7 +6,6 @@ import { folder4Case, buffer2File } from './utils';
 
 async function robustSpawn(folder: string, job: Job<unknown>) {
   const mcode = `addpath('${process.env.ROBUST}'); optimeccentricity('Data'); exit;`;
-
   const robustSpawn = spawn(
     process.env.MATLAB,
     [
@@ -27,9 +26,6 @@ async function robustSpawn(folder: string, job: Job<unknown>) {
       const percomplete = 2.5 * (40 - parseInt(match[2]));
       job.progress(percomplete);
       console.log(`Completed: ${percomplete}%`);
-      if (percomplete === 100) {
-        job.moveToCompleted('done', true);
-      }
     }
   }
   for await (const data of robustSpawn.stderr) {
@@ -57,6 +53,7 @@ export class RobustConsumer {
     const buffer = Buffer.from(job.data['scase'][0]['buffer']['data']);
     await buffer2File(buffer, fname);
     await robustSpawn(folder, job);
+    job.moveToCompleted('done', true);
     const zip = new AdmZip();
     zip.addLocalFolder(folder);
     return zip.toBuffer();

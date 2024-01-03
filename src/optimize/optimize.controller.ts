@@ -14,12 +14,14 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { Queue } from 'bull';
+import { nanoid } from 'nanoid';
+import { createReadStream } from 'fs';
 
 import { BlastProducer } from './blast.producer';
 import { FireProducer } from './fire.producer';
-import { nanoid } from 'nanoid';
-import { createReadStream } from 'fs';
 import { RobustProducer } from './robust.producer';
+import { EvacuationProducer } from './evacuation.producer';
+import { AssessmentProducer } from './assessment.producer';
 
 @Controller('optimize')
 export class OptimizeController {
@@ -27,9 +29,13 @@ export class OptimizeController {
     @InjectQueue('blast') private readonly blastQueue: Queue,
     @InjectQueue('fire') private readonly fireQueue: Queue,
     @InjectQueue('robust') private readonly robustQueue: Queue,
+    @InjectQueue('evacuation') private readonly evacuationQueue: Queue,
+    @InjectQueue('assessment') private readonly assessmentQueue: Queue,
     private readonly blastProducer: BlastProducer,
     private readonly fireProducer: FireProducer,
     private readonly robustProducer: RobustProducer,
+    private readonly evacuationProducer: EvacuationProducer,
+    private readonly assessmentProducer: AssessmentProducer,
   ) {}
 
   // BLAST /////////////////////////////////////////////////
@@ -188,6 +194,111 @@ export class OptimizeController {
     @Param('id') id: string,
   ): Promise<StreamableFile> {
     const job = await this.robustQueue.getJob(id);
+    const name = job.data['name'];
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${name}.zip"`,
+    });
+    const result = Buffer.from(job.returnvalue);
+    return new StreamableFile(result);
+  }
+
+  // EVACUATION /////////////////////////////////////////////////
+
+  @Post('evacuation')
+  @UseInterceptors(AnyFilesInterceptor())
+  async processEvacuationCase(
+    @UploadedFiles() file: Express.Multer.File,
+    @Body() body: { name: string },
+  ) {
+    console.log('EVACUATION POST', body);
+    const uuid = nanoid();
+    return this.evacuationProducer.evacuationNew(file, body.name, uuid);
+  }
+
+  @Get('evacuation/:id')
+  async getEvacuationResults(@Res() res: Response, @Param('id') id: string) {
+    console.log('EVACUATION GET', id);
+    const job = await this.evacuationQueue.getJob(id);
+    const jobIsCompleted = await job.isCompleted();
+    const jobHasFailed = await job.isFailed();
+    const progress = job.progress();
+    let failedReason = '';
+    if (jobHasFailed) failedReason = job.failedReason;
+    res.send({
+      completed: jobIsCompleted,
+      failed: jobHasFailed,
+      failedReason: failedReason,
+      progress: progress,
+    });
+  }
+
+  @Get('evacuationResults/:id')
+  async evacuationResults(
+    @Res({ passthrough: true }) res: Response,
+    @Param('id') id: string,
+  ): Promise<StreamableFile> {
+    const job = await this.evacuationQueue.getJob(id);
+    const name = job.data['name'];
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${name}.zip"`,
+    });
+    const result = Buffer.from(job.returnvalue);
+    return new StreamableFile(result);
+  }
+
+  // ASSESSMENT /////////////////////////////////////////////////
+
+  @Post('assessment')
+  @UseInterceptors(AnyFilesInterceptor())
+  async processAssessmentCase(
+    @UploadedFiles() file: Express.Multer.File,
+    @Body() body: { name: string },
+  ) {
+    console.log('ASSESSMENT POST', body);
+    const uuid = nanoid();
+    return this.assessmentProducer.assessmentNew(file, body.name, uuid);
+  }
+
+  @Get('assessment/:id')
+  async getAssessmentResults(@Res() res: Response, @Param('id') id: string) {
+    console.log('ASSESSMENT GET', id);
+    const job = await this.assessmentQueue.getJob(id);
+    const jobIsCompleted = await job.isCompleted();
+    const jobHasFailed = await job.isFailed();
+    const progress = job.progress();
+    let failedReason = '';
+    if (jobHasFailed) failedReason = job.failedReason;
+    res.send({
+      completed: jobIsCompleted,
+      failed: jobHasFailed,
+      failedReason: failedReason,
+      progress: progress,
+    });
+  }
+
+  @Get('assessment/:id/picture')
+  @Header('Content-Type', 'image/jpg')
+  @Header('Content-Disposition', 'attachment; filename=plot.jpg')
+  async getAssessmentResultPicture(
+    @Res({ passthrough: true }) res: Response,
+    @Param('id') id: string,
+  ): Promise<StreamableFile> {
+    const job = await this.assessmentQueue.getJob(id);
+    console.log(job);
+    const { name, uuid } = job.data;
+    const plot = `/tmp/imsafer/assessment/${name}-${uuid}/Data_r.jpg`;
+    const data = createReadStream(plot);
+    return new StreamableFile(data);
+  }
+
+  @Get('assessmentResults/:id')
+  async assessmentResults(
+    @Res({ passthrough: true }) res: Response,
+    @Param('id') id: string,
+  ): Promise<StreamableFile> {
+    const job = await this.assessmentQueue.getJob(id);
     const name = job.data['name'];
     res.set({
       'Content-Type': 'application/zip',

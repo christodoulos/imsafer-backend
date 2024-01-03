@@ -28,6 +28,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "adm-zip": "^0.5.10",
     "nanoid": "^3.3.7",
+    "object-sizeof": "^2.6.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"
   },
