@@ -5,7 +5,7 @@ import AdmZip = require('adm-zip');
 import { folder4Case, buffer2File } from './utils';
 
 async function robustSpawn(folder: string, job: Job<unknown>) {
-  const mcode = `addpath('${process.env.ROBUST}'); optimeccentricity('Data'); exit;`;
+  const mcode = `addpath('${process.env.ROBUST}'); Robust(); exit(0);`;
   const robustSpawn = spawn(
     process.env.MATLAB,
     [
@@ -18,12 +18,15 @@ async function robustSpawn(folder: string, job: Job<unknown>) {
     ],
     { cwd: folder },
   );
+  let iter = 0;
   for await (const data of robustSpawn.stdout) {
     const regex =
       /.*Current emin:\W([0-9]*[.][0-9]*).*Remaining decades:\W(.*)/gm;
     const match = regex.exec(data.toString());
     if (match) {
-      const percomplete = 2.5 * (40 - parseInt(match[2]));
+      iter += 1;
+      // const percomplete = 1.25 * (40 - parseInt(match[2]));
+      const percomplete = iter * 0.8;
       job.progress(percomplete);
       console.log(`Completed: ${percomplete}%`);
     }

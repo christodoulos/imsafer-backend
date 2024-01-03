@@ -3,10 +3,9 @@ import { Job } from 'bull';
 import { spawn } from 'child_process';
 import AdmZip = require('adm-zip');
 import { folder4Case, buffer2File, fire2csv } from './utils';
-import fs = require('fs');
 
 async function evacuationSpawn(folder: string, job: Job<unknown>) {
-  const mcode = `addpath('${process.env.EVACUATION}'); Evacuation(); exit;`;
+  const mcode = `addpath('${process.env.EVACUATION}'); Evacuation(); exit(0);`;
   console.log(mcode);
   const evacuationSpawn = spawn(
     process.env.MATLAB,
@@ -21,6 +20,7 @@ async function evacuationSpawn(folder: string, job: Job<unknown>) {
     { cwd: folder },
   );
   for await (const data of evacuationSpawn.stdout) {
+    console.log(data.toString());
     const regex = /Current Generation.* (\d+) Remaining Generations (\d+)/;
     const match = regex.exec(data.toString());
     if (match) {
@@ -32,6 +32,10 @@ async function evacuationSpawn(folder: string, job: Job<unknown>) {
         ((currentGeneration / totalGenerations) * 100 * 100) / 17.25;
       job.progress(percentageCompleted);
       console.log(`Completed: ${percentageCompleted}%`);
+    }
+    if (data.toString().includes('Completed')) {
+      // await new Promise((resolve) => setTimeout(resolve, 5000));
+      job.moveToCompleted('done', true);
     }
   }
   for await (const data of evacuationSpawn.stderr) {
@@ -65,12 +69,10 @@ export class EvacuationConsumer {
       await buffer2File(buffer, fname);
     }
     await evacuationSpawn(folder, job);
-    job.moveToCompleted('done', true);
     const zip = new AdmZip();
     zip.addLocalFolder(folder);
     zip.writeZip(`${folder}/results.zip`);
-    console.log('EVACUATION DONE', zip.toBuffer());
-
+    // console.log('EVACUATION DONE', zip.toBuffer());
     return zip.toBuffer();
   }
 }
