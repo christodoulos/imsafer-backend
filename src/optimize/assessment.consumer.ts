@@ -5,7 +5,8 @@ import AdmZip = require('adm-zip');
 import { folder4Case, buffer2File, assess2csv } from './utils';
 
 async function assessmentSpawn(folder: string, job: Job<unknown>) {
-  const mcode = `addpath('${process.env.ASSESSMENT}'); optimeccentricity('Data'); exit;`;
+  const mcode = `addpath('${process.env.ASSESSMENT}'); settings; optimeccentricity('Data'); exit;`;
+  console.log(mcode);
   console.log(mcode);
   const assessmentSpawn = spawn(
     process.env.MATLAB,

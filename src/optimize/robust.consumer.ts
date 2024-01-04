@@ -7,7 +7,7 @@ import fs = require('fs');
 const fsPromises = fs.promises;
 
 async function robustSpawn(folder: string, job: Job<unknown>) {
-  const mcode = `addpath('${process.env.ROBUST}'); Robust(); exit;`;
+  const mcode = `addpath('${process.env.ROBUST}'); settings; Robust(); exit;`;
   const robustSpawn = spawn(
     process.env.MATLAB,
     [
