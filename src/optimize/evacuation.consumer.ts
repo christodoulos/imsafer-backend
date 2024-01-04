@@ -1,7 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { spawn } from 'child_process';
-// import AdmZip = require('adm-zip');
+import AdmZip = require('adm-zip');
 import { folder4Case, buffer2File, fire2csv } from './utils';
 
 async function evacuationSpawn(folder: string, job: Job<unknown>) {
@@ -32,9 +32,6 @@ async function evacuationSpawn(folder: string, job: Job<unknown>) {
       job.progress(percentageCompleted);
       console.log(`Completed: ${percentageCompleted}%`);
     }
-    if (data.toString().includes('Completed')) {
-      job.moveToCompleted('done', true);
-    }
   }
   for await (const data of evacuationSpawn.stderr) {
     job.failedReason = data.toString();
@@ -49,6 +46,13 @@ async function evacuationSpawn(folder: string, job: Job<unknown>) {
 
   evacuationSpawn.on('exit', (code) => {
     console.log(`Child process exited with code: ${code.toString()}`);
+    const zip = new AdmZip();
+    zip.addLocalFile(`${folder}/Output.avi`);
+    zip.writeZip(`${folder}/result.zip`);
+    console.log('EVACUATION DONE', zip.toBuffer());
+    const zipBuffer = zip.toBuffer();
+    const zipString = zipBuffer.toString('base64');
+    job.moveToCompleted(zipString, true);
   });
 }
 
@@ -67,11 +71,5 @@ export class EvacuationConsumer {
       await buffer2File(buffer, fname);
     }
     await evacuationSpawn(folder, job);
-    // const zip = new AdmZip();
-    // zip.addLocalFolder(folder);
-    // zip.writeZip(`${folder}/results.zip`);
-    // console.log('EVACUATION DONE', zip.toBuffer());
-    // return zip.toBuffer();
-    return 'done';
   }
 }

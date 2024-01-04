@@ -196,10 +196,10 @@ export class OptimizeController {
     const job = await this.robustQueue.getJob(id);
     const name = job.data['name'];
     res.set({
-      'Content-Type': 'application/zip',
-      'Content-Disposition': `attachment; filename="${name}.zip"`,
+      'Content-Type': 'text/plain',
+      'Content-Disposition': `attachment; filename="${name}.txt`,
     });
-    const result = Buffer.from(job.returnvalue);
+    const result = Buffer.from(job.returnvalue, 'base64');
     return new StreamableFile(result);
   }
 
@@ -244,7 +244,7 @@ export class OptimizeController {
       'Content-Type': 'application/zip',
       'Content-Disposition': `attachment; filename="${name}.zip"`,
     });
-    const result = Buffer.from(job.returnvalue);
+    const result = Buffer.from(job.returnvalue, 'base64');
     return new StreamableFile(result);
   }
 
@@ -304,7 +304,7 @@ export class OptimizeController {
       'Content-Type': 'application/zip',
       'Content-Disposition': `attachment; filename="${name}.zip"`,
     });
-    const result = Buffer.from(job.returnvalue);
+    const result = Buffer.from(job.returnvalue, 'base64');
     return new StreamableFile(result);
   }
 }

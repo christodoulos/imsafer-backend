@@ -27,9 +27,6 @@ async function assessmentSpawn(folder: string, job: Job<unknown>) {
       const percomplete = 2.5 * (40 - parseInt(match[2]));
       job.progress(percomplete);
       console.log(`Completed: ${percomplete}%`);
-      if (percomplete == 100) {
-        job.moveToCompleted('done', true);
-      }
     }
   }
   for await (const data of assessmentSpawn.stderr) {
@@ -45,6 +42,13 @@ async function assessmentSpawn(folder: string, job: Job<unknown>) {
 
   assessmentSpawn.on('exit', (code) => {
     console.log(`Child process exited with code: ${code.toString()}`);
+    const zip = new AdmZip();
+    zip.addLocalFolder(folder);
+    zip.writeZip(`${folder}/results.zip`);
+    console.log('ASSESSMENT DONE', zip.toBuffer());
+    const zipBuffer = zip.toBuffer();
+    const zipString = zipBuffer.toString('base64');
+    job.moveToCompleted(zipString, true);
   });
 }
 
@@ -63,12 +67,5 @@ export class AssessmentConsumer {
       await buffer2File(buffer, fname);
     }
     await assessmentSpawn(folder, job);
-
-    const zip = new AdmZip();
-    zip.addLocalFolder(folder);
-    zip.writeZip(`${folder}/results.zip`);
-    console.log('ASSESSMENT DONE', zip.toBuffer());
-
-    return zip.toBuffer();
   }
 }
