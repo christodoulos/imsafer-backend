@@ -5,7 +5,7 @@ import AdmZip = require('adm-zip');
 import { folder4Case, buffer2File } from './utils';
 
 async function robustSpawn(folder: string, job: Job<unknown>) {
-  const mcode = `addpath('${process.env.ROBUST}'); Robust(); exit(0);`;
+  const mcode = `addpath('${process.env.ROBUST}'); Robust(); exit;`;
   const robustSpawn = spawn(
     process.env.MATLAB,
     [

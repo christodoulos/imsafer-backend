@@ -5,7 +5,7 @@ import { spawn } from 'child_process';
 import { folder4Case, buffer2File, fire2csv } from './utils';
 
 async function evacuationSpawn(folder: string, job: Job<unknown>) {
-  const mcode = `addpath('${process.env.EVACUATION}'); Evacuation(); exit(0);`;
+  const mcode = `addpath('${process.env.EVACUATION}'); Evacuation(); exit;`;
   console.log(mcode);
   const evacuationSpawn = spawn(
     process.env.MATLAB,
